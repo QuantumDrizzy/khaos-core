@@ -1,7 +1,11 @@
-# khaos-core — Quantum Mirror BCI Kernel
+# khaos-core
 
-Real-time EEG → quantum circuit brain-computer interface kernel.  
-The **Quantum Mirror** app uses this to run a meditation/biofeedback trainer that reflects your neural state as a quantum circuit and maps it to tactile haptic feedback via a sovereign PCIe FPGA.
+> *While others try to encapsulate consciousness, this system liberates it.*
+
+**khaos-core** is a real-time brain-computer interface operating system kernel.  
+It reads your neural activity at 1000 Hz, maps it to a 12-qubit quantum circuit, and returns a physical response the body can feel — entirely on-device, with no cloud, no subscriptions, and no third party between your mind and the hardware.
+
+Ethics compliance is enforced at the compiler level. The build will not compile without it.
 
 ---
 
@@ -304,7 +308,25 @@ On QID: hot-swap the held state to the new attractor rather than forcing RECOVER
 
 ---
 
+## Why sovereign
+
+Most neurotechnology platforms process your brain data in the cloud. khaos-core is built on the opposite principle: **your neural signal never leaves your device.**
+
+The kernel runs on bare metal. The audit log is SHA-256 chained and stored locally. The FPGA hardware kill-switch is a physical circuit, not a software flag. The stimulation bounds are enforced in the GPU kernel and in the FPGA register layer simultaneously — two independent gates.
+
+This is not a privacy feature. It is the architecture.
+
+---
+
 ## License
 
 Research prototype. Not for clinical or medical use.  
 All stimulation outputs are subject to the hard limits in `include/safety_constants.h` (50 µA max).
+
+---
+
+## Contact
+
+Built by a self-taught engineer with a background in real-time systems and quantum computing.  
+Open to research collaboration, hardware partnerships, and relocation.  
+→ drizzyrdrgz@gmail.com
