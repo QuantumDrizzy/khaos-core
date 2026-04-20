@@ -33,6 +33,7 @@
 #  error "lsl_connector.cpp requires ETHICS_COMPLIANT. See docs/ETHICS.md."
 #endif
 
+#include "../../include/lsl_connector.h"   // EEGFrameSlot (shared C API type)
 #include "../../include/khaos_bridge.h"   // N_CHANNELS, NeuralPhaseVector
 #include "../../include/safety_constants.h"
 
@@ -49,6 +50,8 @@
 #include <vector>
 
 // POSIX
+#include <pthread.h>
+#include <sched.h>
 #include <time.h>
 
 #ifdef KHAOS_LSL_ENABLED
@@ -112,24 +115,8 @@ static constexpr float SYN_BETA_AMP = 3.0f;    // µV
 static constexpr float SYN_NOISE_AMP= 2.0f;    // µV
 
 // =============================================================================
-// Host-side ring buffer slot interface (mirrors EEGFrame in signal_processor.cu)
+// Ring buffer  (EEGFrameSlot is defined in include/lsl_connector.h)
 // =============================================================================
-
-/**
- * EEGFrameSlot — matches the layout of EEGFrame in signal_processor.cu.
- *
- * We duplicate the struct here rather than sharing it (signal_processor.cu is
- * CUDA-compiled; lsl_connector.cpp is plain C++) to maintain clean build boundaries.
- *
- * The two structs MUST remain byte-identical.  A static_assert in main.cpp
- * (guarded by KHAOS_VERIFY_FRAME_LAYOUT) cross-checks the sizes.
- */
-struct EEGFrameSlot {
-    float    samples[N_CHANNELS];   // µV, one per EEG channel
-    uint64_t timestamp_ns;          // CLOCK_MONOTONIC_RAW nanoseconds
-    uint32_t frame_index;
-    uint8_t  _pad[4];
-};
 
 // ── Ring buffer (fixed-size, matches RING_FRAMES in signal_processor.cu) ─────
 static constexpr int RING_FRAMES = 8;
@@ -230,6 +217,20 @@ public:
     /** Observed LSL-reported sample rate (0 if not yet connected or synthetic). */
     double lsl_sample_rate() const { return lsl_sample_rate_; }
 
+    /**
+     * Configure real-time scheduling for the pull thread.
+     * Must be called before start().  Settings are applied inside pull_loop()
+     * via pthread_setaffinity_np + pthread_setschedparam(SCHED_FIFO).
+     *
+     * @param cpu_core       Core index (≥0) to pin the thread to.  Pass -1 to skip.
+     * @param sched_priority SCHED_FIFO priority [1,99].  Pass -1 to skip.
+     */
+    void set_realtime(int cpu_core, int sched_priority)
+    {
+        rt_cpu_core_    = cpu_core;
+        rt_sched_prio_  = sched_priority;
+    }
+
 private:
     // ── LSL discovery ─────────────────────────────────────────────────────────
 
@@ -269,6 +270,35 @@ private:
 
     void pull_loop()
     {
+        // ── Real-time thread setup (applied before the acquisition loop) ───────
+        pthread_t self = pthread_self();
+
+        if (rt_cpu_core_ >= 0) {
+            cpu_set_t cpuset;
+            CPU_ZERO(&cpuset);
+            CPU_SET((size_t)rt_cpu_core_, &cpuset);
+            int rc = pthread_setaffinity_np(self, sizeof(cpu_set_t), &cpuset);
+            if (rc != 0)
+                fprintf(stderr, "[lsl] WARNING: pthread_setaffinity_np(core=%d) "
+                                "failed (rc=%d)\n", rt_cpu_core_, rc);
+            else
+                fprintf(stderr, "[lsl] Pull thread pinned to Core %d\n",
+                        rt_cpu_core_);
+        }
+
+        if (rt_sched_prio_ >= 1) {
+            struct sched_param sp{};
+            sp.sched_priority = rt_sched_prio_;
+            int rc = pthread_setschedparam(self, SCHED_FIFO, &sp);
+            if (rc != 0)
+                fprintf(stderr, "[lsl] WARNING: SCHED_FIFO prio=%d failed "
+                                "(rc=%d) — running SCHED_OTHER\n",
+                        rt_sched_prio_, rc);
+            else
+                fprintf(stderr, "[lsl] Pull thread SCHED_FIFO prio=%d\n",
+                        rt_sched_prio_);
+        }
+
         uint64_t last_ts_ns    = 0;
         uint32_t frame_index   = 0;
         double   lsl_offset_us = compute_lsl_offset();  // LSL ↔ local clock offset
@@ -437,6 +467,10 @@ private:
     double            lsl_sample_rate_ = 0.0;
     int               lsl_n_ch_        = 0;
 
+    // Real-time scheduling settings (applied inside pull_loop() at startup)
+    int               rt_cpu_core_    = -1;   // -1 = no affinity pinning
+    int               rt_sched_prio_  = -1;   // -1 = no SCHED_FIFO
+
 #ifdef KHAOS_LSL_ENABLED
     std::unique_ptr<lsl::stream_inlet> inlet_;
     std::vector<double>                lsl_buf_;
@@ -449,9 +483,8 @@ private:
 
 /**
  * Print a one-line jitter summary suitable for the sovereignty audit log.
- * Call from main() after LSLConnector::stop().
  */
-inline void print_lsl_jitter_report(const JitterStats& s)
+static void print_lsl_jitter_report(const JitterStats& s)
 {
     fprintf(stderr,
         "════════════════════════════════════════\n"
@@ -471,3 +504,72 @@ inline void print_lsl_jitter_report(const JitterStats& s)
         (unsigned long long)s.late_count.load(),
         (unsigned long long)s.drop_count.load());
 }
+
+// =============================================================================
+// C API (extern "C") — used by main.cpp which is compiled by g++, not nvcc
+// =============================================================================
+//
+// LSLHandle owns both the ring buffer and the LSLConnector.
+// The connector's pull thread is the sole ring-buffer producer;
+// lsl_try_pop() is the sole consumer (called from the main loop).
+
+struct LSLHandle {
+    EEGRingBuffer                ring;
+    std::unique_ptr<LSLConnector> connector;
+
+    LSLHandle(const char* name, const char* type)
+        : connector(std::make_unique<LSLConnector>(
+              std::string(name), std::string(type), &ring))
+    {}
+};
+
+extern "C" {
+
+LSLHandle* lsl_create(const char* stream_name, const char* stream_type)
+{
+    return new LSLHandle(stream_name, stream_type);
+}
+
+void lsl_start(LSLHandle* h, int use_synthetic)
+{
+    h->connector->start(use_synthetic != 0);
+}
+
+int lsl_try_pop(LSLHandle* h, EEGFrameSlot* out)
+{
+    // Single-consumer: only the main loop calls this.
+    // Relaxed load of write_head is fine — the producer used release on commit.
+    int r = h->ring.read_head.load(std::memory_order_relaxed);
+    int w = h->ring.write_head.load(std::memory_order_acquire);
+    if (r >= w) return 0;
+    *out = h->ring.frames[r % RING_FRAMES];
+    h->ring.read_head.store(r + 1, std::memory_order_release);
+    return 1;
+}
+
+void lsl_print_stats(const LSLHandle* h)
+{
+    print_lsl_jitter_report(h->connector->stats());
+}
+
+int lsl_is_synthetic(const LSLHandle* h)
+{
+    return h->connector->is_synthetic() ? 1 : 0;
+}
+
+void lsl_set_realtime(LSLHandle* h, int cpu_core, int sched_priority)
+{
+    h->connector->set_realtime(cpu_core, sched_priority);
+}
+
+void lsl_stop(LSLHandle* h)
+{
+    h->connector->stop();
+}
+
+void lsl_destroy(LSLHandle* h)
+{
+    delete h;
+}
+
+} // extern "C"

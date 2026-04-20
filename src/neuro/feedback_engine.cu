@@ -38,7 +38,8 @@
 #include <stdexcept>
 #include <string>
 
-#include "../../include/khaos_bridge.h"   // N_HUB_CHANNELS, MAX_QUBITS
+#include "../../include/feedback_engine.h"  // TactileFeedbackOutput, C API types
+#include "../../include/khaos_bridge.h"    // N_HUB_CHANNELS, MAX_QUBITS
 #include "../../include/safety_constants.h"
 
 // ── Safety parameters (aligned with ETHICS.md §II) ───────────────────────────
@@ -344,3 +345,58 @@ private:
     cudaGraphExec_t       graph_exec_   = nullptr;
     uint32_t              bridge_cycle_ = 0;
 };
+
+// =============================================================================
+// Layout verification — TactileFeedbackFrame ↔ TactileFeedbackOutput
+// =============================================================================
+//
+// Both structs must be packed and byte-identical.
+// If this fires, check that feedback_engine.h matches the field list above.
+static_assert(sizeof(TactileFeedbackFrame) == sizeof(TactileFeedbackOutput),
+    "TactileFeedbackFrame / TactileFeedbackOutput layout mismatch — "
+    "update feedback_engine.h to match TactileFeedbackFrame.");
+
+// =============================================================================
+// C API (extern "C") — used by main.cpp (g++, not nvcc)
+// =============================================================================
+
+struct FeedbackHandle {
+    cudaStream_t   stream;
+    FeedbackEngine engine;
+};
+
+extern "C" {
+
+FeedbackHandle* feedback_create_and_init(void)
+{
+    auto* h = new FeedbackHandle{};
+    CUDA_CHECK_FB(cudaStreamCreateWithFlags(&h->stream, cudaStreamNonBlocking));
+    h->engine.init(h->stream);
+    return h;
+}
+
+void feedback_process(FeedbackHandle* h,
+                      const float*    proximity,
+                      float           global_scale,
+                      uint64_t        timestamp_ns)
+{
+    h->engine.process(proximity, global_scale, timestamp_ns);
+}
+
+const TactileFeedbackOutput* feedback_sync_output(FeedbackHandle* h)
+{
+    // sync_output_blocking() blocks until GPU modulation + D2H copy are done.
+    // TactileFeedbackFrame and TactileFeedbackOutput are verified byte-identical
+    // by the static_assert above — reinterpret_cast is safe.
+    const TactileFeedbackFrame* f = h->engine.sync_output_blocking();
+    return reinterpret_cast<const TactileFeedbackOutput*>(f);
+}
+
+void feedback_destroy(FeedbackHandle* h)
+{
+    h->engine.shutdown();
+    cudaStreamDestroy(h->stream);
+    delete h;
+}
+
+} // extern "C"

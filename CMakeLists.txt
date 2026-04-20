@@ -200,6 +200,9 @@ add_library(khaos_core STATIC
     # LSL connector — async ring-buffer fill + jitter measurement
     # Plain C++ (no nvcc): includes lsl_cpp.h when KHAOS_LSL_ENABLED
     src/neuro/lsl_connector.cpp
+
+    # FPGA PCIe driver — UIO/mmap BAR0 register writes (stub when KHAOS_FPGA_ENABLED=0)
+    src/io/fpga_driver.cpp
 )
 
 target_include_directories(khaos_core PUBLIC
