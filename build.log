@@ -1,0 +1,45 @@
+[ 25%] Building CUDA object CMakeFiles/khaos_core.dir/src/neuro/signal_processor.cu.o
+[ 37%] Building CUDA object CMakeFiles/khaos_core.dir/src/neuro/dwt.cu.o
+[ 37%] Building CXX object CMakeFiles/khaos_core.dir/src/security/sovereignty_monitor.cpp.o
+[ 50%] Building CXX object CMakeFiles/khaos_core.dir/src/security/sha256.cpp.o
+/mnt/c/Users/Drizzy/Desktop/khaos-core/src/security/sha256.cpp:90:4: warning: #warning "Neither KHAOS_SHA256_OPENSSL nor KHAOS_SHA256_BUILTIN defined. Defaulting to builtin. Install OpenSSL and rebuild for production security." [-Wcpp]
+   90 | #  warning "Neither KHAOS_SHA256_OPENSSL nor KHAOS_SHA256_BUILTIN defined. \
+      |    ^~~~~~~
+/mnt/c/Users/Drizzy/Desktop/khaos-core/src/security/sovereignty_monitor.cpp:112:13: warning: ‘std::string {anonymous}::hex(const Hash256&)’ defined but not used [-Wunused-function]
+  112 | std::string hex(const Hash256& h) {
+      |             ^~~
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z16ica_apply_kernelPKfS0_Pf' for 'sm_52'
+ptxas info    : Function properties for _Z16ica_apply_kernelPKfS0_Pf
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 27 registers, 344 bytes cmem[0]
+ptxas info    : Compiling entry function '_Z24dwt_extract_theta_kernelPKfP15DWTChannelStateP17NeuralPhaseVector' for 'sm_52'
+ptxas info    : Function properties for _Z24dwt_extract_theta_kernelPKfP15DWTChannelStateP17NeuralPhaseVector
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 22 registers, 344 bytes cmem[0], 44 bytes cmem[2]
+ptxas info    : Function properties for _Z12update_powerPfS_if
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Function properties for _Z11atrous_stepP15DWTChannelStatefiPf
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z15compute_metricsPKfS0_P17NeuralPhaseVector' for 'sm_52'
+ptxas info    : Function properties for _Z15compute_metricsPKfS0_P17NeuralPhaseVector
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 56 registers, 768 bytes smem, 344 bytes cmem[0], 4 bytes cmem[2]
+ptxas info    : Compiling entry function '_Z16iir_biquad_framePKfPfP8SOSStatePK9SOSCoeffs' for 'sm_52'
+ptxas info    : Function properties for _Z16iir_biquad_framePKfPfP8SOSStatePK9SOSCoeffs
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 38 registers, 352 bytes cmem[0]
+[ 62%] Linking CXX static library libkhaos_core.a
+[ 62%] Built target khaos_core
+[ 75%] Building CXX object CMakeFiles/khaos_mirror.dir/src/main.cpp.o
+/mnt/c/Users/Drizzy/Desktop/khaos-core/src/main.cpp: In member function ‘void PythonBridge::send(const NeuralPhaseVector&)’:
+/mnt/c/Users/Drizzy/Desktop/khaos-core/src/main.cpp:256:25: warning: ignoring return value of ‘ssize_t write(int, const void*, size_t)’ declared with attribute ‘warn_unused_result’ [-Wunused-result]
+  256 |         if (n > 0) write(stdin_fd, buf, (size_t)n);
+      |                    ~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+[ 87%] Linking CUDA device code CMakeFiles/khaos_mirror.dir/cmake_device_link.o
+nvlink warning : Skipping incompatible '/usr/lib/x86_64-linux-gnu/librt.a' when searching for -lrt
+nvlink warning : Skipping incompatible '/usr/lib/x86_64-linux-gnu/libpthread.a' when searching for -lpthread
+nvlink warning : Skipping incompatible '/usr/lib/x86_64-linux-gnu/libdl.a' when searching for -ldl
+[100%] Linking CXX executable khaos_mirror
+[100%] Built target khaos_mirror
