@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>khaos-core telemetry</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#06060a;--panel:#0c0c14;--border:#1a1a2e;--cyan:#00e5ff;--magenta:#ff00e5;
+--gold:#ffd700;--green:#39ff14;--red:#ff3131;--white:#d0d0d0;--dim:#555}
+body{background:var(--bg);color:var(--white);font-family:'JetBrains Mono','Fira Code',
+'Cascadia Code',monospace;font-size:12px;overflow:hidden;height:100vh}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:auto 1fr 1fr auto;
+gap:6px;padding:6px;height:100vh}
+.header{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;
+padding:6px 12px;background:var(--panel);border:1px solid var(--border);border-radius:4px}
+.header h1{font-size:14px;color:var(--cyan);letter-spacing:2px}
+.header .meta{font-size:10px;color:var(--dim)}
+.header .meta span{margin-left:12px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:4px;
+padding:8px;display:flex;flex-direction:column;overflow:hidden}
+.panel-title{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;
+margin-bottom:6px;display:flex;justify-content:space-between}
+.panel-title .val{color:var(--cyan)}
+canvas{flex:1;width:100%;border-radius:2px}
+.footer{grid-column:1/-1;display:flex;gap:6px}
+.footer .panel{flex:1;padding:6px 10px;flex-direction:row;align-items:center;justify-content:space-between}
+.sov{transition:all 0.3s}
+.sov.nominal{border-color:var(--green);background:rgba(57,255,20,0.04)}
+.sov.nominal .state{color:var(--green)}
+.sov.degraded{border-color:var(--gold);background:rgba(255,215,0,0.06)}
+.sov.degraded .state{color:var(--gold)}
+.sov.panic{border-color:var(--red);background:rgba(255,49,49,0.1);
+animation:pulse-red 0.5s infinite alternate}
+.sov.panic .state{color:var(--red);font-weight:bold}
+.sov.recovering{border-color:var(--cyan);background:rgba(0,229,255,0.05)}
+.sov.recovering .state{color:var(--cyan)}
+@keyframes pulse-red{0%{border-color:var(--red);box-shadow:0 0 8px rgba(255,49,49,0.3)}
+100%{border-color:#ff6b6b;box-shadow:0 0 20px rgba(255,49,49,0.6)}}
+.stat{text-align:center}
+.stat .label{font-size:9px;color:var(--dim);text-transform:uppercase}
+.stat .value{font-size:16px;font-weight:bold}
+.bar-wrap{height:6px;background:#111;border-radius:3px;overflow:hidden;margin-top:3px}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.15s}
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="header">
+    <h1>⬡ KHAOS-CORE TELEMETRY</h1>
+    <div class="meta">
+      <span id="fps">-- FPS</span>
+      <span id="frame">FRAME #0</span>
+      <span id="latency">WS: --ms</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">EEG Matrix (64ch) <span class="val" id="eeg-rms">--µV</span></div>
+    <canvas id="c-eeg"></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title">Quantum Fidelity <span class="val" id="fid-val">--</span></div>
+    <canvas id="c-fid"></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title">θ Angles (12 Hubs) <span class="val" id="theta-mean">--</span></div>
+    <canvas id="c-theta"></canvas>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Confidence / Entropy <span class="val" id="conf-val">--</span></div>
+    <canvas id="c-conf"></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title">FPGA PWM Duty (12ch) <span class="val" id="pwm-mean">--</span></div>
+    <canvas id="c-pwm"></canvas>
+  </div>
+  <div class="panel">
+    <div class="panel-title">ent_alpha (20 layers) <span class="val" id="mu-val">--</span></div>
+    <canvas id="c-ent"></canvas>
+  </div>
+
+  <div class="footer">
+    <div class="panel sov nominal" id="sov-panel">
+      <div>
+        <div style="font-size:9px;color:var(--dim)">SOVEREIGNTY MONITOR</div>
+        <div class="state" id="sov-state" style="font-size:18px">NOMINAL</div>
+        <div style="font-size:9px;color:var(--dim)" id="sov-sub">ETHICS_COMPLIANT=ON</div>
+      </div>
+      <div class="stat"><div class="label">Fidelity</div><div class="value" id="s-fid">--</div></div>
+      <div class="stat"><div class="label">Confidence</div><div class="value" id="s-conf">--</div></div>
+      <div class="stat"><div class="label">Noise</div><div class="value" id="s-noise">--</div></div>
+      <div class="stat"><div class="label">BP Index</div><div class="value" id="s-bp">--</div></div>
+      <div class="stat"><div class="label">SOV Token</div><div class="value" id="s-token">--</div></div>
+      <div class="stat"><div class="label">Kill-Switch</div><div class="value" style="color:var(--green)" id="s-ks">5ms ✓</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// Canvas setup
+// ═══════════════════════════════════════════════════════════════════
+function initCanvas(id) {
+  const c = document.getElementById(id);
+  const dpr = window.devicePixelRatio || 1;
+  const resize = () => {
+    const r = c.getBoundingClientRect();
+    c.width = r.width * dpr; c.height = r.height * dpr;
+    const ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
+    c._w = r.width; c._h = r.height;
+  };
+  resize();
+  window.addEventListener('resize', resize);
+  return c;
+}
+
+const cEeg = initCanvas('c-eeg');
+const cFid = initCanvas('c-fid');
+const cTheta = initCanvas('c-theta');
+const cConf = initCanvas('c-conf');
+const cPwm = initCanvas('c-pwm');
+const cEnt = initCanvas('c-ent');
+
+// ═══════════════════════════════════════════════════════════════════
+// History buffers
+// ═══════════════════════════════════════════════════════════════════
+const HIST = 300;
+const fidHist = new Float32Array(HIST);
+const confHist = new Float32Array(HIST);
+const entHist = new Float32Array(HIST);
+const noiseHist = new Float32Array(HIST);
+let histIdx = 0;
+let lastFrame = null;
+
+// ═══════════════════════════════════════════════════════════════════
+// Color helpers
+// ═══════════════════════════════════════════════════════════════════
+function heatColor(v) {
+  // v ∈ [-1, 1] → blue(-) → black(0) → cyan(+)
+  v = Math.max(-1, Math.min(1, v));
+  if (v >= 0) return `rgb(0,${Math.floor(v*229)},${Math.floor(v*255)})`;
+  return `rgb(${Math.floor(-v*180)},0,${Math.floor(-v*255)})`;
+}
+
+function fidelityColor(f) {
+  if (f > 0.85) return '#39ff14';
+  if (f > 0.5) return '#00e5ff';
+  if (f > 0.3) return '#ffd700';
+  return '#ff3131';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Draw functions
+// ═══════════════════════════════════════════════════════════════════
+
+function drawEEG(c, eeg) {
+  const ctx = c.getContext('2d');
+  const w = c._w, h = c._h;
+  ctx.clearRect(0, 0, w, h);
+  const cellW = w / 8, cellH = h / 8;
+  for (let i = 0; i < 64; i++) {
+    const row = Math.floor(i / 8), col = i % 8;
+    const v = eeg[i] / 50; // normalize to ~[-1,1]
+    ctx.fillStyle = heatColor(v);
+    ctx.fillRect(col * cellW + 1, row * cellH + 1, cellW - 2, cellH - 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = '8px monospace';
+    ctx.fillText(eeg[i].toFixed(0), col * cellW + 3, row * cellH + 12);
+  }
+}
+
+function drawLine(c, hist, idx, color, min, max, thresholds) {
+  const ctx = c.getContext('2d');
+  const w = c._w, h = c._h;
+  ctx.clearRect(0, 0, w, h);
+
+  // Thresholds
+  if (thresholds) {
+    for (const [val, col] of thresholds) {
+      const y = h - ((val - min) / (max - min)) * h;
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // Line
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < HIST; i++) {
+    const di = (idx + 1 + i) % HIST;
+    const x = (i / HIST) * w;
+    const y = h - ((hist[di] - min) / (max - min)) * h;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // Glow
+  ctx.strokeStyle = color.replace(')', ',0.15)').replace('rgb', 'rgba');
+  ctx.lineWidth = 6;
+  ctx.stroke();
+}
+
+function drawTheta(c, theta) {
+  const ctx = c.getContext('2d');
+  const w = c._w, h = c._h;
+  ctx.clearRect(0, 0, w, h);
+  const bw = w / 12 - 4;
+  for (let i = 0; i < 12; i++) {
+    const norm = theta[i] / Math.PI;
+    const bh = norm * (h - 20);
+    const x = i * (w / 12) + 2;
+    // Gradient bar
+    const grad = ctx.createLinearGradient(0, h, 0, h - bh);
+    grad.addColorStop(0, 'rgba(0,229,255,0.3)');
+    grad.addColorStop(1, norm > 0.5 ? '#ff00e5' : '#00e5ff');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, h - bh, bw, bh);
+    // Label
+    ctx.fillStyle = '#888';
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`q${i}`, x + bw/2, h - bh - 3);
+    ctx.fillText(theta[i].toFixed(2), x + bw/2, h - 2);
+  }
+}
+
+function drawPWM(c, duty, state) {
+  const ctx = c.getContext('2d');
+  const w = c._w, h = c._h;
+  ctx.clearRect(0, 0, w, h);
+  const bw = w / 12 - 4;
+  for (let i = 0; i < 12; i++) {
+    const norm = duty[i] / 32767;
+    const bh = norm * (h - 16);
+    const x = i * (w / 12) + 2;
+    ctx.fillStyle = state === 'PANIC' ? '#ff3131' :
+                    `rgba(${Math.floor(255*norm)},${Math.floor(215*(1-norm))},0,0.8)`;
+    ctx.fillRect(x, h - bh, bw, bh);
+    ctx.fillStyle = '#666';
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(duty[i], x + bw/2, h - 2);
+  }
+}
+
+function drawEnt(c, ent, mu) {
+  const ctx = c.getContext('2d');
+  const w = c._w, h = c._h;
+  ctx.clearRect(0, 0, w, h);
+  const bw = w / 20 - 2;
+  for (let i = 0; i < 20; i++) {
+    const bh = ent[i] * (h - 14);
+    const x = i * (w / 20) + 1;
+    const hue = 280 - ent[i] * 280;
+    ctx.fillStyle = `hsl(${hue},90%,55%)`;
+    ctx.fillRect(x, h - bh, bw, bh);
+  }
+  ctx.fillStyle = '#666';
+  ctx.font = '9px monospace';
+  ctx.fillText(`μ=${mu.toFixed(3)} eV`, 4, 12);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Sovereignty panel update
+// ═══════════════════════════════════════════════════════════════════
+function updateSov(d) {
+  const p = document.getElementById('sov-panel');
+  const stateMap = {NOMINAL:'nominal',DEGRADED:'degraded',PANIC:'panic',RECOVERING:'recovering'};
+  p.className = 'panel sov ' + (stateMap[d.circuit_state] || 'nominal');
+  document.getElementById('sov-state').textContent = d.circuit_state;
+  document.getElementById('sov-sub').textContent =
+    d.circuit_state === 'PANIC' ? 'CIRCUIT BREAKER TRIPPED — ALL OUTPUTS ZEROED' :
+    d.circuit_state === 'DEGRADED' ? 'SIGNAL DEGRADED — MONITORING' :
+    d.circuit_state === 'RECOVERING' ? 'RECOVERING — AWAITING FIDELITY > 0.85' :
+    'ETHICS_COMPLIANT=ON';
+  document.getElementById('s-fid').textContent = d.fidelity.toFixed(2);
+  document.getElementById('s-fid').style.color = fidelityColor(d.fidelity);
+  document.getElementById('s-conf').textContent = d.confidence.toFixed(2);
+  document.getElementById('s-conf').style.color = d.confidence > 0.5 ? '#00e5ff' : '#ff3131';
+  document.getElementById('s-noise').textContent = (d.noise_level * 100).toFixed(0) + '%';
+  document.getElementById('s-noise').style.color = d.noise_level > 0.7 ? '#ff3131' : '#ffd700';
+  document.getElementById('s-bp').textContent = d.bp_index.toFixed(2);
+  document.getElementById('s-token').textContent = '0x' + d.sov_token.toString(16).toUpperCase().padStart(4, '0');
+  const ks = document.getElementById('s-ks');
+  if (d.circuit_state === 'PANIC') { ks.textContent = 'ACTIVE'; ks.style.color = '#ff3131'; }
+  else { ks.textContent = '5ms ✓'; ks.style.color = '#39ff14'; }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// WebSocket + render loop
+// ═══════════════════════════════════════════════════════════════════
+let frameCount = 0, lastFpsTime = performance.now(), displayFps = 0;
+
+function connect() {
+  const ws = new WebSocket(`ws://${location.host}/ws`);
+  ws.onmessage = (e) => {
+    lastFrame = JSON.parse(e.data);
+    const now = performance.now();
+    document.getElementById('latency').textContent =
+      `WS: ${(now - lastFrame.timestamp_ms).toFixed(0)}ms`;
+  };
+  ws.onclose = () => setTimeout(connect, 1000);
+  ws.onerror = () => ws.close();
+}
+
+function render() {
+  requestAnimationFrame(render);
+  if (!lastFrame) return;
+  const d = lastFrame;
+
+  // FPS counter
+  frameCount++;
+  const now = performance.now();
+  if (now - lastFpsTime > 500) {
+    displayFps = Math.round(frameCount / ((now - lastFpsTime) / 1000));
+    lastFpsTime = now; frameCount = 0;
+  }
+  document.getElementById('fps').textContent = displayFps + ' FPS';
+  document.getElementById('frame').textContent = 'FRAME #' + d.frame_id;
+
+  // Update history
+  fidHist[histIdx % HIST] = d.fidelity;
+  confHist[histIdx % HIST] = d.confidence;
+  entHist[histIdx % HIST] = d.entropy;
+  noiseHist[histIdx % HIST] = d.noise_level;
+  histIdx++;
+
+  // Header stats
+  const rms = Math.sqrt(d.eeg.reduce((s, v) => s + v*v, 0) / 64);
+  document.getElementById('eeg-rms').textContent = rms.toFixed(1) + ' µV rms';
+  document.getElementById('fid-val').textContent = d.fidelity.toFixed(3);
+  document.getElementById('theta-mean').textContent = 'mean=' + (d.theta.reduce((a,b)=>a+b,0)/12).toFixed(2);
+  document.getElementById('conf-val').textContent = `C=${d.confidence.toFixed(2)} E=${d.entropy.toFixed(2)}`;
+  document.getElementById('pwm-mean').textContent = d.circuit_state==='PANIC'?'ZEROED':'ACTIVE';
+  document.getElementById('mu-val').textContent = `μ=${d.mu_eV.toFixed(3)}eV`;
+
+  // Draw all canvases
+  drawEEG(cEeg, d.eeg);
+  drawLine(cFid, fidHist, (histIdx-1)%HIST, '#ff00e5', 0, 1, [
+    [0.85, '#39ff1466'], [0.5, '#ffd70066'], [0.3, '#ff313166']
+  ]);
+  drawTheta(cTheta, d.theta);
+  drawLine(cConf, confHist, (histIdx-1)%HIST, '#00e5ff', 0, 1, [
+    [0.5, '#ffd70066'], [0.3, '#ff313166']
+  ]);
+  drawPWM(cPwm, d.pwm_duty, d.circuit_state);
+  drawEnt(cEnt, d.ent_alpha, d.mu_eV);
+  updateSov(d);
+}
+
+connect();
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

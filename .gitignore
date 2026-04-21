@@ -39,3 +39,10 @@ coefficients/*.npy
 *.pem
 *.key
 user_private_key*
+
+# Dashboard runtime
+dashboard/__pycache__/
+
+# Personal / thread drafts
+khaos_core_thread.md
+khaos_core_thread_compressed.md

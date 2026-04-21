@@ -67,6 +67,79 @@ EEG Amplifier (64ch @ 1000 Hz)
 
 ---
 
+## Architecture Validation
+
+Real data plots generated from the actual code parameters using `scripts/gen_visuals.py`:
+
+### IIR Filter Response
+
+Exact frequency response of the 10th-order Butterworth bandpass (8–30 Hz), computed from the SOS coefficients in `signal_processor.cu`. 50 Hz powerline rejection: **-63.1 dB** (spec ≥ -60 dB).
+
+![IIR Butterworth Response](visuals/01_iir_butterworth.png)
+
+### θ Angle Mapping
+
+The transfer function `θ = 2·arcsin(√(P_β / (P_μ + P_β + ε)))` that maps EEG band power to qubit rotation angles, with a simulated 12-channel heatmap.
+
+![Theta Mapping](visuals/02_theta_mapping.png)
+
+### Graphene Forward Model
+
+Real transfer functions from `dirac_emulator.py`: AC conductivity vs chemical potential, the ent_alpha entanglement matrix across 20 circuit layers, and the rest-vs-active entanglement profile.
+
+![Graphene Forward Model](visuals/03_graphene_model.png)
+
+### Quantum Fidelity Landscape
+
+Landmark fidelity profiles, a simulated real-time fidelity trajectory with circuit breaker thresholds (NOMINAL > 0.85, DEGRADED > 0.5, PANIC > 0.3), and the corresponding state machine output.
+
+![Quantum Fidelity](visuals/04_quantum_fidelity.png)
+
+### FPGA Tactile Output
+
+12-channel PWM duty cycle and FM frequency heatmaps (Pacinian range: 50–300 Hz), with the XOR-fold sovereignty token timeline.
+
+![FPGA Output](visuals/05_fpga_output.png)
+
+### Pipeline Latency Budget
+
+End-to-end latency for one frame at 1000 Hz. The entire DSP path (LSL → IIR → ICA → DWT → metrics → D2H) fits inside **0.1 ms**. The quantum circuit runs asynchronously at ~40 ms without blocking the 1 kHz cadence.
+
+![Latency Budget](visuals/06_latency_budget.png)
+
+---
+
+## Real-Time Telemetry Dashboard
+
+A zero-dependency, real-time visualization of the full pipeline state. Vanilla JS + Canvas API at 60 FPS. No React, no npm, no build step.
+
+```bash
+cd dashboard
+pip install fastapi uvicorn numpy websockets
+uvicorn server:app --host 0.0.0.0 --port 8765
+# Open http://localhost:8765
+```
+
+**Panels:**
+
+| Panel | Data Source | Update Rate |
+|---|---|---|
+| EEG Matrix (8×8) | 64-channel amplitudes (µV) | 60 Hz |
+| Quantum Fidelity | Statevector inner product vs landmark | 60 Hz |
+| θ Angles (12 hubs) | DWT μ/β band power ratio | 60 Hz |
+| Confidence / Entropy | ICA signal quality metrics | 60 Hz |
+| FPGA PWM Duty (12ch) | Pauli-Z → [0, 32767] per hub | 60 Hz |
+| ent_alpha (20 layers) | Graphene conductivity → entanglement | 60 Hz |
+| Sovereignty Monitor | Circuit breaker state + kill-switch status | 60 Hz |
+
+The sovereignty panel transitions between states visually:
+- **NOMINAL** (green) — ethics compliant, all systems active
+- **DEGRADED** (gold) — signal quality dropping, monitoring
+- **PANIC** (red, pulsing) — circuit breaker tripped, all FPGA outputs zeroed
+- **RECOVERING** (cyan) — awaiting fidelity > 0.85
+
+---
+
 ## Stack
 
 | Layer | Technology |
@@ -78,6 +151,7 @@ EEG Amplifier (64ch @ 1000 Hz)
 | Tactile feedback | CUDA modulation kernel → PCIe FPGA (PWM + FM) |
 | Post-quantum crypto | CRYSTALS-Kyber-1024 (liboqs) |
 | Audit log | SHA-256 chained log (OpenSSL EVP or builtin) |
+| Telemetry | FastAPI WebSocket + Vanilla JS Canvas (60 FPS) |
 | Build | CMake 3.26+, C++17, CUDA 12 |
 | Target GPU | RTX 4xxx/5xxx (sm_89, Ada Lovelace / Blackwell) |
 
@@ -100,6 +174,9 @@ OpenSSL              (system package — apt/brew)
 # For real FPGA output
 UIO kernel module     modprobe uio_pci_generic
 /dev/uio0             PCIe BAR0 exposed via Linux UIO driver
+
+# For telemetry dashboard
+pip install fastapi uvicorn numpy websockets
 ```
 
 ---
@@ -214,6 +291,14 @@ Safety bounds enforced in-kernel and at the register layer:
 - `global_scale = 0` (PANIC) → all FPGA shadow registers zeroed before COMMIT
 - `STATUS FAULT | SOV_FAIL` → software kill-switch armed within one STATUS poll cycle
 
+```cpp
+constexpr float STIM_ABSOLUTE_MAX_AMP = 50.0f;   // µA — non-negotiable
+constexpr int   KILLSWITCH_TIMEOUT_MS = 5;        // hardware, independent of software
+
+static_assert(STIM_ABSOLUTE_MAX_AMP <= 50.0f,
+    "SAFETY VIOLATION: Stimulation ceiling exceeds 50 µA.");
+```
+
 To amend any principle: edit `ETHICS.md` with rationale and review date, then rebuild.
 
 ---
@@ -224,6 +309,7 @@ To amend any principle: edit `ETHICS.md` with rationale and review date, then re
 khaos-core/
 ├── CMakeLists.txt               Master build (ETHICS gate, CUDA/CUDA-Q/liboqs detection)
 ├── ETHICS.md                    Neurorights manifesto
+├── README.md                    This file
 ├── include/
 │   ├── khaos_bridge.h           NeuralPhaseVector, shared C/CUDA types
 │   ├── safety_constants.h       STIM_ABSOLUTE_MAX_AMP, N_HUB_CHANNELS, …
@@ -234,6 +320,7 @@ khaos-core/
 │   └── sha256.h                 SHA-256 interface
 ├── scripts/
 │   ├── gen_coefficients.py      Generates IIR SOS coefficients via scipy
+│   ├── gen_visuals.py           Generates architecture validation plots
 │   └── init_khaos.sh            Project scaffold / dependency checker
 ├── src/
 │   ├── main.cpp                 Closed-loop orchestrator: EEG → bridge → FPGA
@@ -253,11 +340,18 @@ khaos-core/
 │   └── security/
 │       ├── sha256.cpp           SHA-256 (OpenSSL EVP + portable FIPS 180-4 fallback)
 │       └── sovereignty_monitor.cpp  Audit log chain, dissipation gate, kill-switch
-└── tests/
-    ├── bench/bench_latency.cu   End-to-end latency benchmark
-    └── unit/
-        ├── test_iir_filter.cu   IIR filter SNR + composite signal tests (8/8)
-        └── test_dwt.cu          DWT reconstruction fidelity tests
+├── dashboard/
+│   ├── server.py                FastAPI + WebSocket telemetry server (60 Hz)
+│   └── index.html               Vanilla JS + Canvas real-time dashboard (60 FPS)
+├── visuals/                     Architecture validation plots (gen_visuals.py)
+├── tests/
+│   ├── bench/bench_latency.cu   End-to-end latency benchmark
+│   └── unit/
+│       ├── test_iir_filter.cu   IIR filter SNR + composite signal tests (8/8)
+│       └── test_dwt.cu          DWT reconstruction fidelity tests
+├── coefficients/                Generated IIR SOS coefficient files
+├── data/                        Runtime data (calibration, audit logs — gitignored)
+└── vault/                       Encrypted calibration vault
 ```
 
 ---
@@ -308,6 +402,18 @@ On QID: hot-swap the held state to the new attractor rather than forcing RECOVER
 
 ---
 
+## Roadmap
+
+| Phase | Description | Status |
+|---|---|---|
+| 0.5 | GPU statevector simulation + telemetry dashboard | **Current** |
+| 1.0 | Real EEG hardware integration (ADS1299 frontend) | Planned |
+| 1.5 | RISC-V sovereignty coprocessor on FPGA | Planned |
+| 2.0 | Graphene ASIC fabrication (CVD coupon validation) | Research |
+| 3.0 | QPU backend (real quantum hardware via CUDA-Q) | Research |
+
+---
+
 ## Why sovereign
 
 Most neurotechnology platforms process your brain data in the cloud. khaos-core is built on the opposite principle: **your neural signal never leaves your device.**
@@ -327,6 +433,6 @@ All stimulation outputs are subject to the hard limits in `include/safety_consta
 
 ## Contact
 
-Built by a self-taught engineer with a background in real-time systems and quantum computing.  
+Built by a self-taught engineer from Murcia, Spain.  
 Open to research collaboration, hardware partnerships, and relocation.  
 → drizzyrdrgz@gmail.com
