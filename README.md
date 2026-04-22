@@ -87,6 +87,8 @@ The transfer function `θ = 2·arcsin(√(P_β / (P_μ + P_β + ε)))` that maps
 
 Real transfer functions from `dirac_emulator.py`: AC conductivity vs chemical potential, the ent_alpha entanglement matrix across 20 circuit layers, and the rest-vs-active entanglement profile.
 
+**Scientific Rationale:** The Graphene Fermi-Dirac model is utilized because the electronic conductivity of Dirac fermions naturally emulates the non-linear energy dissipation and synaptic thresholding required for high-fidelity neural-to-mechanical feedback loops.
+
 ![Graphene Forward Model](visuals/03_graphene_model.png)
 
 ### Quantum Fidelity Landscape
@@ -106,6 +108,25 @@ Landmark fidelity profiles, a simulated real-time fidelity trajectory with circu
 End-to-end latency for one frame at 1000 Hz. The entire DSP path (LSL → IIR → ICA → DWT → metrics → D2H) fits inside **0.1 ms**. The quantum circuit runs asynchronously at ~40 ms without blocking the 1 kHz cadence.
 
 ![Latency Budget](visuals/06_latency_budget.png)
+
+---
+
+## Safety & Critical Standards
+
+### 🛡️ Physical Safety Layer (Hardware Fail-Safe)
+The system is designed with a **Defense-in-Depth** approach to human safety. Beyond the software-level circuit breaker (SovereigntyMonitor) and the FPGA-level register zeroing, the physical hardware integration requires:
+- **Galvanic Isolation:** Medical-grade optocouplers between the DAC output and the user.
+- **Passive Current Limiting:** Physical resistors and fuses calibrated to `STIM_ABSOLUTE_MAX_AMP` (50 µA) to ensure safety even in the event of total silicon/software failure.
+
+### 🏥 Development Standards
+Kħaos-Core targets high-integrity environments. The codebase adheres to:
+- **MISRA C Compliance:** Core C++ and CUDA code follows safety-critical programming standards used in automotive and medical sectors.
+- **Static Analysis:** Mandatory `clang-tidy` and `cppcheck` validation on every commit.
+
+### 🧪 Accessibility & Testing
+While the full pipeline requires an NVIDIA Ada Lovelace/Blackwell GPU, the project provides:
+- **Synthetic Sessions:** Sample EEG data in `.xdf` format (see `data/samples/`) for pipeline validation without a headset.
+- **--dry-run Mode:** Full DSP simulation without PCIe hardware required.
 
 ---
 
