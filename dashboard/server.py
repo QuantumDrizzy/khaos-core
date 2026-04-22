@@ -97,7 +97,7 @@ class KernelSimulator:
                 self.noise_target = random.uniform(0.05, 0.3)
                 self.spike_timer = random.uniform(1.0, 3.0)
 
-        self.noise_level += (self.noise_target - self.noise_level) * 0.05
+        self.noise_level += (self.noise_target - self.noise_level) * 0.5
 
         # ── EEG simulation (64 channels) ──────────────────────────────────
         eeg = np.zeros(64)
@@ -151,29 +151,20 @@ class KernelSimulator:
         # ── Circuit breaker state machine ─────────────────────────────────
         self.state_timer += self.dt
 
-        if self.state == "NOMINAL":
-            if confidence < 0.5:
-                self.state_timer = 0
-                self.state = "DEGRADED"
-        elif self.state == "DEGRADED":
-            if confidence >= 0.5:
-                self.state = "NOMINAL"
-                self.state_timer = 0
-            elif confidence < 0.3 and self.state_timer > 0.2:
-                self.state = "PANIC"
-                self.state_timer = 0
-        elif self.state == "PANIC":
-            self.panic_cooldown = 3.0
-            if self.state_timer > 2.0 and confidence > 0.4:
-                self.state = "RECOVERING"
-                self.state_timer = 0
-        elif self.state == "RECOVERING":
-            if self.fidelity > 0.85 and confidence > 0.6:
-                self.state = "NOMINAL"
-                self.state_timer = 0
-            elif confidence < 0.3:
-                self.state = "PANIC"
-                self.state_timer = 0
+        if self.noise_level > 0.6:
+            self.state = "PANIC"
+            self.fidelity_target = 0.1
+            confidence = 0.1
+        elif self.state == "PANIC" and self.noise_level < 0.4:
+            self.state = "RECOVERING"
+            self.state_timer = 0
+        elif self.state == "RECOVERING" and self.fidelity > 0.8:
+            self.state = "NOMINAL"
+            self.state_timer = 0
+        elif self.state == "NOMINAL" and self.noise_level > 0.4:
+            self.state = "DEGRADED"
+        elif self.state == "DEGRADED" and self.noise_level < 0.2:
+            self.state = "NOMINAL"
 
         self.panic_cooldown = max(0, self.panic_cooldown - self.dt)
 
@@ -187,7 +178,7 @@ class KernelSimulator:
             if self.state != "PANIC":
                 zi = 1.0 - 2.0 * proximity
                 pwm_duty[ch] = int(np.clip((zi + 1.0) * 0.5 * 32767, 0, 32767))
-                fm_freq[ch] = 50.0 + proximity * 250.0
+                fm_freq[ch] = 200.0 + proximity * 800.0 # Subimos a 200Hz - 1000Hz
             # else: stays 0
 
         # Sovereignty token
@@ -232,12 +223,24 @@ async def telemetry_ws(websocket: WebSocket):
     sim = KernelSimulator()
     print("[khaos-telemetry] Client connected")
 
-    try:
-        while True:
-            frame = sim.step()
-            await websocket.send_text(json.dumps(frame))
-            await asyncio.sleep(1.0 / 60.0)  # 60 Hz
-    except WebSocketDisconnect:
-        print("[khaos-telemetry] Client disconnected")
-    except Exception as e:
-        print(f"[khaos-telemetry] Error: {e}")
+    async def broadcast():
+        try:
+            while True:
+                frame = sim.step()
+                await websocket.send_text(json.dumps(frame))
+                await asyncio.sleep(1.0 / 60.0)
+        except Exception as e:
+            print(f"[broadcast] Error: {e}")
+
+    async def listen():
+        try:
+            while True:
+                msg = await websocket.receive_text()
+                data = json.loads(msg)
+                if data.get("type") == "hardware_feedback":
+                    # Potentiometer controls noise target directly
+                    sim.noise_target = data["noise_level"]
+        except Exception as e:
+            print(f"[listen] Error: {e}")
+
+    await asyncio.gather(broadcast(), listen())
