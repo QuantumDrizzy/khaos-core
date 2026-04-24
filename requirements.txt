@@ -1,0 +1,15 @@
+# KĦAOS-CORE — Python validation stack dependencies
+# Install: pip install -r requirements.txt
+
+# Signal processing
+numpy>=1.24
+scipy>=1.11
+
+# EEG acquisition (LSL) — optional for hardware mode
+# pylsl>=1.16.2   # uncomment when using a physical Muse 2 with BlueMuse
+
+# Visualization (optional — required only for sovereignty_dashboard.py)
+matplotlib>=3.7
+
+# Testing
+pytest>=7.4
