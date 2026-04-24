@@ -46,3 +46,19 @@ dashboard/__pycache__/
 # Personal / thread drafts
 khaos_core_thread.md
 khaos_core_thread_compressed.md
+
+# Sovereign data — never expose
+vault/
+logs/
+
+# Test fixtures generated from C++ kernel (add once generated)
+tests/fixtures/*.npy
+
+# Python packaging
+*.egg-info/
+dist/
+.eggs/
+
+# pytest temp
+pytest-cache-files-*/
+.pytest_cache/

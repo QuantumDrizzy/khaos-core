@@ -1,11 +1,47 @@
-# khaos-core
+# KĦAOS-CORE
+
+![CI](https://github.com/drizzyrdrgz/khaos-core/actions/workflows/ci.yml/badge.svg)
+![Tests](https://img.shields.io/badge/tests-81%2F81%20passing-brightgreen)
+![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 > *While others try to encapsulate consciousness, this system liberates it.*
 
-**khaos-core** is a real-time brain-computer interface operating system kernel.  
-It reads your neural activity at 1000 Hz, maps it to a 12-qubit quantum circuit, and returns a physical response the body can feel — entirely on-device, with no cloud, no subscriptions, and no third party between your mind and the hardware.
+**KĦAOS-CORE** is a dual-stack brain-computer interface architecture with embedded neurorights sovereignty.
+
+- **Python validation stack** — 256 Hz · 4–64 channels · 12-qubit feature extraction · ethics gate · sovereignty dashboard · 81 passing tests
+- **C++/CUDA production kernel** — 1000 Hz · 64 channels · IIR order 10 · < 250 µs end-to-end · FPGA output via PCIe BAR0
+- **Shared sovereignty protocol** — HMAC-SHA256 cross-stack handshake · SHA-256 chained audit log · 50 µA stimulation cap enforced at the code level
 
 Ethics compliance is enforced at the compiler level. The build will not compile without it.
+
+---
+
+## Quick Start
+
+```bash
+# Clone and install
+git clone https://github.com/drizzyrdrgz/khaos-core.git
+cd khaos-core
+pip install -e ".[dev,dashboard]"
+
+# Run the 11-step live demo (no hardware required — uses SyntheticMuse2Adapter)
+python scripts/demo_wyss.py
+
+# Run the full test suite
+pytest tests/unit/ -v
+# → 81 passed
+```
+
+---
+
+## For Researchers
+
+The KĦAOS-CORE Muse 2 Python stack is our accessible validation frontend. The kernel is device-agnostic: the feature extractor accepts N channels (4–64) and always produces the same 12-qubit (240-element theta) representation for the quantum circuit layer, regardless of sensor density. We have validated the architecture at 1000 Hz with 64 channels (C++/CUDA kernel) and at 256 Hz with 4 channels (Muse 2 Python stack).
+
+The 12-qubit quantum representation is invariant to spatial sensor density — this is a deliberate architectural property, not a limitation.
+
+**[→ Technical Paper v1.1](docs/KHAOS_CORE_Technical_Paper_v1.1.pdf)** — Dual-stack architecture, signal processing pipeline, 12-qubit feature map, Dirac-LPAS coupling (sec. 5.4), sovereignty architecture, 81-test validation suite, and joint research proposal (sec. 9.2).
 
 ---
 
