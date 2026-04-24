@@ -143,10 +143,10 @@ Threshold justification:
 
 ---
 
-## 4. Muse 2 as Validation Frontend — Framing for Wyss Center
+## 4. Muse 2 as Validation Frontend — Architecture Overview
 
-The following framing should be used with Kyuwha Lee (Wyss Center, Geneva) and
-any external reviewer asking about the Muse 2's role in the system:
+The Muse 2 is the accessible validation frontend for the KĦAOS-CORE dual-stack architecture.
+For any reviewer asking about its role in the system:
 
 > "The Muse 2 is our accessible validation frontend. The khaos-core kernel is
 > device-agnostic: the feature extractor accepts N channels (4–64) and always
@@ -208,7 +208,7 @@ any external reviewer asking about the Muse 2's role in the system:
 3. **PROD dashboard**: Start the C++ kernel with `shm_name=khaos_npv` and
    launch `sovereignty_dashboard.py --mode prod --shm khaos_npv`.
 
-4. **Wyss Center demo**: Use `SyntheticMuse2Adapter` + DEMO dashboard for the
+4. **Live demo**: Use `SyntheticMuse2Adapter` + DEMO dashboard for any
    presentation. The 29+N passing tests and this report constitute the
    technical audit trail.
 

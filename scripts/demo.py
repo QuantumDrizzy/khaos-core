@@ -1,18 +1,17 @@
 #!/usr/bin/env python3
 """
-demo_wyss.py — KĦAOS-CORE Live Demo Script
+demo.py — KĦAOS-CORE Live Demo Script
 ══════════════════════════════════════════════════════════════════════════════
-End-to-end demonstration of the Muse 2 Python validation stack for the
-Wyss Center for Bio and Neuroengineering, Geneva.
+End-to-end demonstration of the Muse 2 Python validation stack.
 
 Runs entirely without hardware using SyntheticMuse2Adapter.
 Demonstrates: EEG pipeline, 12-qubit feature extraction, ethics gate,
 cross-stack audit trail, stimulation safety cap, and sovereignty killswitch.
 
 Usage:
-    python demo_wyss.py          # interactive (prompts dashboard launch)
-    python demo_wyss.py --no-dashboard   # CI / non-interactive mode
-    echo n | python demo_wyss.py # pipe stdin to skip dashboard prompt
+    python demo.py          # interactive (prompts dashboard launch)
+    python demo.py --no-dashboard   # CI / non-interactive mode
+    echo n | python demo.py # pipe stdin to skip dashboard prompt
 
 Requirements: numpy, scipy, matplotlib (optional, for dashboard)
 """
@@ -161,7 +160,7 @@ def step_consent(tmpdir: str) -> object:
     from src.ethics.ethics_gate import EthicsGate
 
     log_path = Path(tmpdir) / "gate.jsonl"
-    gate     = EthicsGate(user_id="wyss_demo", log_path=log_path, verbose=False)
+    gate     = EthicsGate(user_id="khaos_demo", log_path=log_path, verbose=False)
     token    = gate.request_consent()
     gate.begin_session(token)
 
@@ -313,7 +312,7 @@ def step_killswitch(gate) -> bool:
 
     from src.ethics.ethics_gate import NeurightViolation
 
-    gate.trigger_killswitch(reason="wyss_demo_killswitch_test")
+    gate.trigger_killswitch(reason="khaos_demo_killswitch_test")
     print(f"  Killswitch     : {red('TRIGGERED')}")
 
     # Now any gate_pass must raise NeurightViolation
@@ -474,7 +473,7 @@ def print_summary():
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def main():
-    parser = argparse.ArgumentParser(description="KĦAOS-CORE Wyss Center demo")
+    parser = argparse.ArgumentParser(description="KĦAOS-CORE live demo")
     parser.add_argument("--no-dashboard", action="store_true",
                         help="Skip the optional dashboard launch prompt")
     args = parser.parse_args()

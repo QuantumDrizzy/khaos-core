@@ -26,7 +26,7 @@ cd khaos-core
 pip install -e ".[dev,dashboard]"
 
 # Run the 11-step live demo (no hardware required — uses SyntheticMuse2Adapter)
-python scripts/demo_wyss.py
+python scripts/demo.py
 
 # Run the full test suite
 pytest tests/unit/ -v
