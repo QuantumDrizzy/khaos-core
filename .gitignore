@@ -62,3 +62,16 @@ dist/
 # pytest temp
 pytest-cache-files-*/
 .pytest_cache/
+
+# Wyss submission docs — CONFIDENTIAL, store outside repo or in private repo
+WYSS_SUBMISSION_KHAOS/
+
+# LibreOffice lock/temp files
+.~lock.*
+*.tmp
+
+# Duplicate root-level demo (canonical: scripts/demo_wyss.py)
+demo_wyss.py
+
+# Working copy of paper (canonical: docs/*.pdf)
+KHAOS_CORE_Technical_Paper.docx
