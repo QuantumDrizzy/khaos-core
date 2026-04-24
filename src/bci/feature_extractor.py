@@ -90,8 +90,9 @@ def _band_power(signal: np.ndarray, f_low: float, f_high: float,
     mask = (freqs >= f_low) & (freqs <= f_high)
     if not np.any(mask):
         return EPS
-    # Trapezoidal integration
-    return float(np.trapz(pxx[mask], freqs[mask]))
+    # Trapezoidal integration — np.trapezoid added in numpy 2.0, trapz removed
+    _trapz = getattr(np, "trapezoid", np.trapz)
+    return float(_trapz(pxx[mask], freqs[mask]))
 
 
 def _log_band_power(signal: np.ndarray, f_low: float, f_high: float,
