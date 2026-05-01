@@ -72,7 +72,7 @@ class ElectrodeModel(ABC):
     """Abstract electrode model.
 
     Subclasses implement the physics of a specific electrode technology.
-    All khaos-core components that need electrode correction should
+    All KHAOS components that need electrode correction should
     accept an ``ElectrodeModel`` instance rather than a concrete class.
     """
 

@@ -1,6 +1,6 @@
 #pragma once
 /**
- * lsl_connector.h — C API for the khaos-core LSL EEG Connector.
+ * lsl_connector.h — C API for the KHAOS LSL EEG Connector.
  *
  * Exposes EEGFrameSlot and an opaque LSLHandle so that main.cpp can
  * drive EEG acquisition without depending on LSL or C++ class headers.

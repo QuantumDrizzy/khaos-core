@@ -1,5 +1,5 @@
 /**
- * main.cpp — khaos-core / Quantum Mirror  (closed-loop integration)
+ * main.cpp — KHAOS / Quantum Mirror  (closed-loop integration)
  *
  * Full pipeline:
  *
@@ -700,7 +700,7 @@ int main(int argc, char** argv)
 
     fprintf(stderr,
         "╔═══════════════════════════════════════════════╗\n"
-        "║   khaos-core / Quantum Mirror v0.1            ║\n"
+        "║   KHAOS / Quantum Mirror v0.1            ║\n"
         "║   ETHICS_COMPLIANT build  (closed-loop)       ║\n"
         "╚═══════════════════════════════════════════════╝\n");
     if (cfg.dry_run)

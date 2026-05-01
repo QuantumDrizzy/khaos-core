@@ -1,7 +1,7 @@
 """
 ethics_gate.py — Python Sovereignty Gate (mirror of sovereignty_monitor.cpp)
 ══════════════════════════════════════════════════════════════════════════════
-Enforces the khaos-core neurorights architecture at the Python layer:
+Enforces the KHAOS neurorights architecture at the Python layer:
 
   • Raw EEG (any array with > 12 elements representing raw sensor data) is
     ARCHITECTURALLY BLOCKED from crossing the DSP boundary.
@@ -115,7 +115,7 @@ class AuditEntry:
 # ── Core gate ─────────────────────────────────────────────────────────────────
 
 class EthicsGate:
-    """Singleton-style sovereignty enforcer for a khaos-core session.
+    """Singleton-style sovereignty enforcer for a KHAOS session.
 
     Usage
     -----

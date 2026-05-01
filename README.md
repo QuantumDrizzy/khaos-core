@@ -91,8 +91,8 @@ If `global_scale = 0` (PANIC) → all FPGA shadow registers zeroed before COMMIT
 ## build
 
 ```bash
-git clone https://github.com/QuantumDrizzy/khaos-core.git
-cd khaos-core
+git clone https://github.com/QuantumDrizzy/KHAOS.git
+cd KHAOS
 
 # Generate IIR coefficients
 python3 scripts/gen_coefficients.py

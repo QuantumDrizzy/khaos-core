@@ -1,6 +1,6 @@
 #pragma once
 /**
- * fpga_driver.h — C API for the khaos-core PCIe FPGA Tactile Driver.
+ * fpga_driver.h — C API for the KHAOS PCIe FPGA Tactile Driver.
  *
  * PCIe BAR0 register map (112 bytes, 0x000–0x070):
  *

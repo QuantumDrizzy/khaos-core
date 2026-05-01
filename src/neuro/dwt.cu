@@ -1,6 +1,6 @@
 /**
  * dwt.cu
- * khaos-core — Daubechies D4 Feature Extractor
+ * KHAOS — Daubechies D4 Feature Extractor
  *
  * Implements a streaming à-trous (undecimated) Daubechies D4 wavelet
  * analysis filter bank for real-time mu/beta band power extraction.

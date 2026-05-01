@@ -70,7 +70,7 @@ import numpy as np
 from matplotlib.animation import FuncAnimation
 from mpl_toolkits.mplot3d import Axes3D   # noqa: F401 (registers projection)
 
-# ── Palette (matches NIGHTWATCH / khaos-core dark theme) ─────────────────────
+# ── Palette (matches NIGHTWATCH / KHAOS dark theme) ─────────────────────
 BG       = "#060a0e"
 GREEN    = "#00ff88"
 AMBER    = "#ffaa00"
@@ -263,7 +263,7 @@ def _draw_bloch_sphere(ax: "Axes3D"):
 # ── Main dashboard ─────────────────────────────────────────────────────────────
 
 class SovereigntyDashboard:
-    """Real-time khaos-core sovereignty dashboard.
+    """Real-time KHAOS sovereignty dashboard.
 
     Parameters
     ----------
@@ -390,7 +390,7 @@ class SovereigntyDashboard:
             else "DEMO  ·  synthetic"
         self._fig = plt.figure(figsize=(16, 8), facecolor=BG)
         self._fig.suptitle(
-            f"khaos-core  ·  Sovereignty Dashboard  ·  [{mode_tag}]  ·  KGL v6.0",
+            f"KHAOS  ·  Sovereignty Dashboard  ·  [{mode_tag}]  ·  KGL v6.0",
             color=GREEN, fontsize=11, fontweight="bold",
             fontfamily="monospace", y=0.98)
 
@@ -567,7 +567,7 @@ if __name__ == "__main__":
     import tempfile
     from pathlib import Path
 
-    parser = argparse.ArgumentParser(description="khaos-core Sovereignty Dashboard")
+    parser = argparse.ArgumentParser(description="KHAOS Sovereignty Dashboard")
     parser.add_argument("--mode",    default="demo", choices=["demo", "prod"],
                         help="'demo' (synthetic) or 'prod' (C++ kernel via shm)")
     parser.add_argument("--shm",     default="khaos_npv",

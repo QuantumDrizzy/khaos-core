@@ -1,5 +1,5 @@
 /**
- * feedback_engine.cu — khaos-core Closed-Loop Tactile Feedback Engine
+ * feedback_engine.cu — KHAOS Closed-Loop Tactile Feedback Engine
  *
  * Receives the quantum-bridge proximity vector (fidelity scores per hub
  * channel, 0→1) and generates two FPGA-bound control signals:

@@ -1,5 +1,5 @@
 """
-server.py — khaos-core Telemetry WebSocket Server
+server.py — KHAOS Telemetry WebSocket Server
 ===================================================
 FastAPI + WebSockets. Simulates the kernel pipeline at 60 Hz.
 
@@ -34,7 +34,7 @@ from fastapi.staticfiles import StaticFiles
 
 import numpy as np
 
-app = FastAPI(title="khaos-core telemetry")
+app = FastAPI(title="KHAOS telemetry")
 
 # ── Serve index.html ──────────────────────────────────────────────────────────
 
@@ -47,7 +47,7 @@ async def root():
 
 class KernelSimulator:
     """
-    Simulates the khaos-core pipeline output at 60 Hz.
+    Simulates the KHAOS pipeline output at 60 Hz.
     Models realistic EEG dynamics, quantum fidelity transitions,
     and circuit breaker state machine.
     """

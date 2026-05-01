@@ -1,5 +1,5 @@
 /**
- * signal_processor.cu  —  khaos-core Real-Time EEG Signal Processor
+ * signal_processor.cu  —  KHAOS Real-Time EEG Signal Processor
  *
  * Pipeline:
  *   LSL → pinned ring buffer → iir_biquad_frame (8-section SOS)

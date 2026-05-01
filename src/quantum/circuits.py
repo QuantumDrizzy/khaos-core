@@ -1,5 +1,5 @@
 """
-circuits.py — khaos-core Quantum Backend
+circuits.py — KHAOS Quantum Backend
 ==========================================
 
 Implements the parameterized quantum circuit that maps neural intention
@@ -685,7 +685,7 @@ def build_simulation_backend(gpu_index: int = 0) -> KhaosBackend:
 # =============================================================================
 
 if __name__ == "__main__":
-    print("khaos-core quantum circuit smoke test")
+    print("KHAOS quantum circuit smoke test")
     print("=" * 50)
 
     backend = build_simulation_backend()

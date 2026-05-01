@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.26 FATAL_ERROR)
 
 # =============================================================================
-# khaos-core — Quantum BCI Kernel
+# KHAOS — Quantum BCI Kernel
 # =============================================================================
-project(khaos_core
+project(khaos
     VERSION 0.1.0
     DESCRIPTION "Real-time EEG → quantum circuit BCI kernel"
     LANGUAGES CXX CUDA)
@@ -23,7 +23,7 @@ if(NOT ETHICS_COMPLIANT)
     message(FATAL_ERROR
         "\n"
         "╔══════════════════════════════════════════════════════════════╗\n"
-        "║          khaos-core WILL NOT BUILD                          ║\n"
+        "║          KHAOS WILL NOT BUILD                          ║\n"
         "║          ETHICS_COMPLIANT is set to OFF                     ║\n"
         "╠══════════════════════════════════════════════════════════════╣\n"
         "║  This flag enforces the neurorights principles in           ║\n"
@@ -38,7 +38,7 @@ if(NOT ETHICS_COMPLIANT)
         "║   2. Document any applicable regulatory review.             ║\n"
         "║   3. Re-enable ETHICS_COMPLIANT=ON.                         ║\n"
         "║                                                              ║\n"
-        "║  khaos-core cannot be compiled without this flag.           ║\n"
+        "║  KHAOS cannot be compiled without this flag.           ║\n"
         "╚══════════════════════════════════════════════════════════════╝\n"
     )
 endif()
@@ -183,7 +183,7 @@ list(APPEND KHAOS_CUDA_FLAGS --Wreorder)
 # =============================================================================
 # Core library target
 # =============================================================================
-add_library(khaos_core STATIC
+add_library(khaos STATIC
     # DSP pipeline — dsp_pipeline.cu is the single CUDA TU; it #includes
     # signal_processor.cu and dwt.cu so all three kernels compile together
     # and link cleanly without duplicate symbols.
@@ -205,11 +205,11 @@ add_library(khaos_core STATIC
     src/io/fpga_driver.cpp
 )
 
-target_include_directories(khaos_core PUBLIC
+target_include_directories(khaos PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CUDAToolkit_INCLUDE_DIRS})
 
-target_compile_options(khaos_core PRIVATE
+target_compile_options(khaos PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:${KHAOS_CXX_FLAGS}>
     $<$<COMPILE_LANGUAGE:CUDA>:${KHAOS_CUDA_FLAGS}>)
 
@@ -222,7 +222,7 @@ endif()
 # NOTE: STIM_ABSOLUTE_MAX_AMP and KILLSWITCH_TIMEOUT_MS are defined in
 #       include/safety_constants.h — do NOT redefine here as -D macros
 #       or they will collide with the constexpr declarations.
-target_compile_definitions(khaos_core PUBLIC
+target_compile_definitions(khaos PUBLIC
     ETHICS_COMPLIANT=1
     KHAOS_VERSION_HASH=0x${KHAOS_GIT_HASH}
     $<$<BOOL:${KHAOS_CUDAQ}>:KHAOS_CUDAQ_ENABLED>
@@ -232,12 +232,12 @@ target_compile_definitions(khaos_core PUBLIC
 
 # Enable CUDA separable compilation (needed for device-side function calls
 # across .cu translation units, e.g. signal_processor → dwt)
-set_target_properties(khaos_core PROPERTIES
+set_target_properties(khaos PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
     POSITION_INDEPENDENT_CODE ON)
 
 # Link optional dependencies
-target_link_libraries(khaos_core PUBLIC
+target_link_libraries(khaos PUBLIC
     CUDA::cudart
     CUDA::cuda_driver
     $<$<BOOL:${KHAOS_CUDAQ}>:cudaq::cudaq>
@@ -251,7 +251,7 @@ target_link_libraries(khaos_core PUBLIC
 add_executable(khaos_mirror
     src/main.cpp)
 
-target_link_libraries(khaos_mirror PRIVATE khaos_core)
+target_link_libraries(khaos_mirror PRIVATE khaos)
 target_compile_options(khaos_mirror PRIVATE ${KHAOS_CXX_FLAGS})
 
 # =============================================================================
@@ -262,19 +262,19 @@ enable_testing()
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/tests/bench/bench_latency.cu)
     add_executable(bench_latency tests/bench/bench_latency.cu)
-    target_link_libraries(bench_latency PRIVATE khaos_core CUDA::cudart)
+    target_link_libraries(bench_latency PRIVATE khaos CUDA::cudart)
     target_compile_options(bench_latency PRIVATE
         $<$<COMPILE_LANGUAGE:CUDA>:${KHAOS_CUDA_FLAGS}>)
 endif()
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/tests/unit/test_sovereignty.cpp)
     add_executable(test_sovereignty tests/unit/test_sovereignty.cpp)
-    target_link_libraries(test_sovereignty PRIVATE khaos_core)
+    target_link_libraries(test_sovereignty PRIVATE khaos)
     add_test(NAME sovereignty COMMAND test_sovereignty)
 endif()
 
 if(EXISTS ${CMAKE_SOURCE_DIR}/tests/unit/test_iir_filter.cu)
-    # Standalone TU: includes signal_processor.cu directly → no khaos_core link.
+    # Standalone TU: includes signal_processor.cu directly → no khaos link.
     add_executable(test_iir_filter tests/unit/test_iir_filter.cu)
     target_include_directories(test_iir_filter PRIVATE
         ${CMAKE_SOURCE_DIR}/include
@@ -306,7 +306,7 @@ endif()
 # =============================================================================
 # Install
 # =============================================================================
-install(TARGETS khaos_core khaos_mirror
+install(TARGETS khaos khaos_mirror
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib)
@@ -319,7 +319,7 @@ install(FILES docs/ETHICS.md DESTINATION share/khaos)
 # =============================================================================
 message(STATUS "")
 message(STATUS "══════════════════════════════════════════════")
-message(STATUS "  khaos-core ${PROJECT_VERSION} configuration summary")
+message(STATUS "  KHAOS ${PROJECT_VERSION} configuration summary")
 message(STATUS "══════════════════════════════════════════════")
 message(STATUS "  ETHICS_COMPLIANT : ON  (required)")
 message(STATUS "  CUDA Toolkit     : ${CUDAToolkit_VERSION}")

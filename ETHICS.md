@@ -1,4 +1,4 @@
-# khaos-core Ethics Compliance Document
+# KHAOS Ethics Compliance Document
 
 > **This document is a hard build dependency.**
 > The CMakeLists.txt enforces `ETHICS_COMPLIANT=ON`.
@@ -12,7 +12,7 @@
 
 ## Preamble
 
-khaos-core is a brain-computer interface kernel that processes human neural signals,
+KHAOS is a brain-computer interface kernel that processes human neural signals,
 derives intention states, and returns sensory feedback. It operates at the boundary
 between computation and cognition.
 
@@ -31,7 +31,7 @@ the first legal protections of their kind in the world.
 ## I. Foundational Principles
 
 ### 1. Mental Privacy
-Neural data processed by khaos-core belongs exclusively to the user.
+Neural data processed by KHAOS belongs exclusively to the user.
 
 - Raw EEG signals MUST NOT be transmitted off-device under any condition.
 - Only derived θ-Frame data (rotation angles, not raw signals) MAY be transmitted,
@@ -82,7 +82,7 @@ The user has ultimate, unilateral authority over the khaos system at all times.
 ## II. Safety Requirements
 
 ### Visual Stimulation Policy
-khaos-core MUST NOT use stroboscopic, flickering, or rapidly-alternating visual
+KHAOS MUST NOT use stroboscopic, flickering, or rapidly-alternating visual
 stimuli for state induction or feedback at frequencies above 1 Hz.
 
 Rationale: frequencies in the 3–30 Hz range in the visual field are associated
@@ -170,7 +170,7 @@ option(ETHICS_COMPLIANT "Enable neurorights compliance (required)" ON)
 if(NOT ETHICS_COMPLIANT)
     message(FATAL_ERROR
         "\n"
-        "  khaos-core cannot be compiled with ETHICS_COMPLIANT=OFF.\n"
+        "  KHAOS cannot be compiled with ETHICS_COMPLIANT=OFF.\n"
         "\n"
         "  This flag enforces the neurorights principles in ETHICS.md:\n"
         "  - Mental Privacy    (no raw EEG transmission)\n"
@@ -184,7 +184,7 @@ if(NOT ETHICS_COMPLIANT)
 endif()
 
 # Compile-time constants enforced by this flag
-target_compile_definitions(khaos_core PRIVATE
+target_compile_definitions(khaos PRIVATE
     ETHICS_COMPLIANT=1
     KHAOS_VERSION_HASH="${KHAOS_GIT_HASH}"
     STIM_ABSOLUTE_MAX_AMP=50   # microamperes, non-negotiable ceiling
@@ -211,5 +211,5 @@ physical hardware modification and is outside the scope of this document.
 
 ---
 
-*khaos-core is built on the principle that the human mind is not a peripheral.
+*KHAOS is built on the principle that the human mind is not a peripheral.
 It is the operator. The system serves it — never the reverse.*

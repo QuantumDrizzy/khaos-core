@@ -1,6 +1,6 @@
 /**
  * sovereignty_monitor.cpp
- * khaos-core — Cognitive Sovereignty Guardian
+ * KHAOS — Cognitive Sovereignty Guardian
  *
  * Responsibilities:
  *   1. Guard the dissipation gate: block any non-user-initiated alpha application

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-gen_coefficients.py — khaos-core
+gen_coefficients.py — KHAOS
 Generates IIR SOS filter coefficients and writes them as C headers.
 
 Usage:

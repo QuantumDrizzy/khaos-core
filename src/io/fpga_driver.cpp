@@ -1,5 +1,5 @@
 /**
- * fpga_driver.cpp — khaos-core PCIe FPGA Tactile Driver
+ * fpga_driver.cpp — KHAOS PCIe FPGA Tactile Driver
  *
  * Implements the C API declared in include/fpga_driver.h.
  *

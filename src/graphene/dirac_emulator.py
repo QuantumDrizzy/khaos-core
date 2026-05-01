@@ -1,5 +1,5 @@
 """
-dirac_emulator.py — khaos-core Graphene Forward Model
+dirac_emulator.py — KHAOS Graphene Forward Model
 ======================================================
 
 Models the physics of a graphene-based neural interface as a forward model
@@ -731,7 +731,7 @@ class DiracEmulator:
 if __name__ == "__main__":
     import json
 
-    print("khaos-core Dirac emulator smoke test")
+    print("KHAOS Dirac emulator smoke test")
     print("=" * 50)
 
     emulator = DiracEmulator()

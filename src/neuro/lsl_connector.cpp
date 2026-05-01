@@ -1,5 +1,5 @@
 /**
- * lsl_connector.cpp — khaos-core Lab Streaming Layer Connector
+ * lsl_connector.cpp — KHAOS Lab Streaming Layer Connector
  *
  * Provides LSLConnector, a thread-safe adapter that:
  *   • Discovers an EEG LSL stream by name/type

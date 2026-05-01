@@ -2,7 +2,7 @@
 feature_extractor.py — Multi-Channel EEG → 12-Qubit Neural Feature Vector
 ══════════════════════════════════════════════════════════════════════════════
 Maps N EEG channels (N ∈ {4, 16, 32, 64}) to the 12 neurophysiologically
-validated qubits required by khaos-core's quantum circuit layer.
+validated qubits required by KHAOS's quantum circuit layer.
 
   circuits.py:  N_QUBITS_MAIN=12, N_LAYERS=20  →  theta shape (240,)
 
@@ -225,7 +225,7 @@ class SpatialEmbedding:
 # ── Main feature extractor ────────────────────────────────────────────────────
 
 class Muse2FeatureExtractor:
-    """Transforms a filtered EEG window into the khaos-core theta vector.
+    """Transforms a filtered EEG window into the KHAOS theta vector.
 
     Parameters
     ----------

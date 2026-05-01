@@ -1,11 +1,11 @@
 """
 test_swap_fidelity.py — SWAP Test Relative Fidelity Suite
 ══════════════════════════════════════════════════════════════════════════════
-Validates the relative SWAP fidelity formula used by khaos-core to assess
+Validates the relative SWAP fidelity formula used by KHAOS to assess
 quantum state similarity despite the noise floor introduced by Muse 2 AgCl
 dry-contact electrodes.
 
-Relative fidelity formula (Drizzy / khaos-core convention):
+Relative fidelity formula (Drizzy / KHAOS convention):
 
   F_corrected = (raw_SWAP − ε_user_baseline) / (1 − ε_user_baseline)
 

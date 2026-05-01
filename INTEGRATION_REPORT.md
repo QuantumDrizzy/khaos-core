@@ -1,7 +1,7 @@
 # KĦAOS-CORE — Integration Report: Muse 2 Python Stack ↔ C++/CUDA Kernel
 
 **Date:** 2026-04-24  
-**Author:** Claude (Dispatch / khaos-core integration pass, CTSO review by Kimi)  
+**Author:** Claude (Dispatch / KHAOS integration pass, CTSO review by Kimi)  
 **Status:** Implementation complete — hardware validation pending
 
 ---
@@ -148,7 +148,7 @@ Threshold justification:
 The Muse 2 is the accessible validation frontend for the KĦAOS-CORE dual-stack architecture.
 For any reviewer asking about its role in the system:
 
-> "The Muse 2 is our accessible validation frontend. The khaos-core kernel is
+> "The Muse 2 is our accessible validation frontend. The KHAOS kernel is
 > device-agnostic: the feature extractor accepts N channels (4–64) and always
 > produces the same 12-qubit (240-element theta) representation for the quantum
 > circuit layer, regardless of the sensor density. We have validated the

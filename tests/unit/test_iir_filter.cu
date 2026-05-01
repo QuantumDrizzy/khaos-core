@@ -1,8 +1,8 @@
 /**
- * test_iir_filter.cu — khaos-core IIR Filter SNR + Phase Coherence Test
+ * test_iir_filter.cu — KHAOS IIR Filter SNR + Phase Coherence Test
  *
  * Standalone CUDA unit test.  Includes signal_processor.cu directly
- * (not linked against khaos_core) so it can inspect d_filt_samples().
+ * (not linked against khaos) so it can inspect d_filt_samples().
  *
  * Filter under test:
  *   10th-order Butterworth bandpass 8–30 Hz, fs=1000 Hz (10 SOS sections)
@@ -343,7 +343,7 @@ int main(void)
 {
     printf("\n");
     printf("╔══════════════════════════════════════════════════════════════════╗\n");
-    printf("║    khaos-core IIR Filter SNR + Phase Coherence Test             ║\n");
+    printf("║    KHAOS IIR Filter SNR + Phase Coherence Test             ║\n");
     printf("║    10th-order Butterworth bandpass 8–30 Hz, fs = 1000 Hz        ║\n");
     printf("╚══════════════════════════════════════════════════════════════════╝\n");
     printf("\n");

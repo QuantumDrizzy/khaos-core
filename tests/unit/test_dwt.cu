@@ -1,8 +1,8 @@
 /**
- * test_dwt.cu — khaos-core DWT Feature Extractor Unit Test
+ * test_dwt.cu — KHAOS DWT Feature Extractor Unit Test
  *
  * Standalone CUDA unit test.  Includes dwt.cu directly
- * (not linked against khaos_core).
+ * (not linked against khaos).
  *
  * The DWTExtractor's default W matrix is identity-like:
  *   hub[i] ← channel[i]   for i ∈ [0, N_HUB_CHANNELS)
@@ -126,7 +126,7 @@ int main(void)
 {
     printf("\n");
     printf("╔══════════════════════════════════════════════════════════════════╗\n");
-    printf("║    khaos-core DWT Feature Extractor Unit Test                   ║\n");
+    printf("║    KHAOS DWT Feature Extractor Unit Test                   ║\n");
     printf("║    à-trous Daubechies D4, 7 levels, fs = 1000 Hz               ║\n");
     printf("╚══════════════════════════════════════════════════════════════════╝\n");
     printf("\n");

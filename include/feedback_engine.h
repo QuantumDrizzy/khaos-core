@@ -1,6 +1,6 @@
 #pragma once
 /**
- * feedback_engine.h — C API for the khaos-core Tactile Feedback Engine.
+ * feedback_engine.h — C API for the KHAOS Tactile Feedback Engine.
  *
  * Provides opaque C wrappers around FeedbackEngine (feedback_engine.cu) so
  * that main.cpp can drive the kernel without being compiled by nvcc.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-calibration_wizard.py — khaos-core Baseline Calibration Wizard
+calibration_wizard.py — KHAOS Baseline Calibration Wizard
 ==============================================================
 
 Guides the user through a 5-phase "boring handshake" to establish
@@ -39,7 +39,7 @@ Usage:
 Sovereign principle:
   No raw EEG leaves this script.  Only statistical summaries (mean/std of
   derived theta angles) are written to the vault.  Raw waveforms are never
-  stored.  Consistent with khaos-core ETHICS.md §I (Mental Privacy).
+  stored.  Consistent with KHAOS ETHICS.md §I (Mental Privacy).
 """
 
 from __future__ import annotations
@@ -167,7 +167,7 @@ def _print(msg: str = "", color: str = "") -> None:
 def _header() -> None:
     print()
     _print("╔══════════════════════════════════════════════════════════════╗", CYAN)
-    _print("║   khaos-core  ·  Baseline Calibration Wizard                ║", CYAN)
+    _print("║   KHAOS  ·  Baseline Calibration Wizard                ║", CYAN)
     _print("║   5-phase EEG landmark acquisition + Sovereignty signing    ║", CYAN)
     _print("╚══════════════════════════════════════════════════════════════╝", CYAN)
     print()
@@ -486,7 +486,7 @@ def _git_hash() -> str:
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="khaos-core 5-phase EEG baseline calibration wizard",
+        description="KHAOS 5-phase EEG baseline calibration wizard",
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("-o", "--output", default=None,
                    help="Vault JSON output path (default: ../vault/landmarks.json)")

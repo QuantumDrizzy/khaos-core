@@ -1,5 +1,5 @@
 /**
- * sha256.cpp — khaos-core
+ * sha256.cpp — KHAOS
  * SHA-256 implementation for the sovereignty audit log chain.
  *
  * Interface (declared in include/sha256.h):

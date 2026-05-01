@@ -1,6 +1,6 @@
 #pragma once
 /**
- * safety_constants.h — khaos-core
+ * safety_constants.h — KHAOS
  * Hardware safety limits. Values here are enforced by static_assert()
  * in sovereignty_monitor.cpp. Do not increase STIM_ABSOLUTE_MAX_AMP
  * without IRB-level review and ETHICS.md amendment.

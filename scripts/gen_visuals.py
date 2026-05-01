@@ -1,5 +1,5 @@
 """
-gen_visuals.py — Generate real data visualizations from khaos-core parameters.
+gen_visuals.py — Generate real data visualizations from KHAOS parameters.
 Outputs publication-quality plots for the Twitter thread.
 """
 import numpy as np
@@ -38,7 +38,7 @@ sos = signal.iirfilter(10, [8, 30], btype='bandpass', ftype='butter',
 w, h = signal.sosfreqz(sos, worN=4096, fs=1000)
 
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), facecolor=BG)
-fig.suptitle('khaos-core IIR Filter Response\n10th-Order Butterworth Bandpass (8–30 Hz)',
+fig.suptitle('KHAOS IIR Filter Response\n10th-Order Butterworth Bandpass (8–30 Hz)',
              color=WHITE, fontsize=16, fontweight='bold')
 
 # Magnitude
@@ -90,7 +90,7 @@ save(fig, '01_iir_butterworth.png')
 print("[2/6] Theta angle mapping...")
 
 fig, axes = plt.subplots(1, 3, figsize=(16, 5), facecolor=BG)
-fig.suptitle('khaos-core θ Angle Mapping: EEG Band Power → Qubit Rotation',
+fig.suptitle('KHAOS θ Angle Mapping: EEG Band Power → Qubit Rotation',
              color=WHITE, fontsize=15, fontweight='bold')
 
 # a) Theta vs power ratio
@@ -167,7 +167,7 @@ layer_freqs = [carrier_hz / 2**(l+1) for l in range(n_layers)]
 layer_omegas = [2*np.pi*f for f in layer_freqs]
 
 fig, axes = plt.subplots(2, 2, figsize=(14, 10), facecolor=BG)
-fig.suptitle('khaos-core Graphene Forward Model — Real Transfer Functions',
+fig.suptitle('KHAOS Graphene Forward Model — Real Transfer Functions',
              color=WHITE, fontsize=16, fontweight='bold')
 
 # a) Conductivity vs mu
@@ -236,7 +236,7 @@ save(fig, '03_graphene_model.png')
 print("[4/6] Quantum fidelity landscape...")
 
 fig, axes = plt.subplots(1, 3, figsize=(16, 5), facecolor=BG)
-fig.suptitle('khaos-core Quantum Latent Space — Fidelity Navigation',
+fig.suptitle('KHAOS Quantum Latent Space — Fidelity Navigation',
              color=WHITE, fontsize=15, fontweight='bold')
 
 # a) Fidelity vs theta for a 1-qubit Ry circuit (pedagogical)
@@ -305,7 +305,7 @@ save(fig, '04_quantum_fidelity.png')
 print("[5/6] FPGA feedback timeline...")
 
 fig, axes = plt.subplots(3, 1, figsize=(14, 8), facecolor=BG, sharex=True)
-fig.suptitle('khaos-core FPGA Tactile Output — 12-Channel PWM + FM',
+fig.suptitle('KHAOS FPGA Tactile Output — 12-Channel PWM + FM',
              color=WHITE, fontsize=15, fontweight='bold')
 
 np.random.seed(99)
@@ -398,7 +398,7 @@ for i, (s, t_ms) in enumerate(zip(starts, times)):
 ax.set_yticks(range(len(stages)))
 ax.set_yticklabels(labels, fontsize=9)
 ax.set_xlabel('Time (ms)', color=WHITE)
-ax.set_title('khaos-core Full Pipeline Latency Budget (1 Frame @ 1000 Hz)',
+ax.set_title('KHAOS Full Pipeline Latency Budget (1 Frame @ 1000 Hz)',
              color=WHITE, fontsize=14, fontweight='bold')
 ax.axvline(1.0, color=RED, ls='--', lw=2, alpha=0.7, label='1 ms deadline')
 ax.legend(fontsize=10)

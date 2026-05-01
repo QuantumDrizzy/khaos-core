@@ -11,7 +11,7 @@ without adding the repo root to PYTHONPATH manually.
 from setuptools import setup, find_packages
 
 setup(
-    name="khaos-core",
+    name="KHAOS",
     version="1.1.0",
     description="Dual-stack BCI architecture with embedded neurorights sovereignty",
     author="KĦAOS-CORE contributors",
