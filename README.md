@@ -1,4 +1,4 @@
-# KĦAOS-CORE
+# KĦAOS
 
 > Neurorights at the hardware level — not as a feature, as a constraint.
 
